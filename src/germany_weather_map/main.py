@@ -56,4 +56,4 @@ if weather_data:
             temp = point['current']['temperature_2m']
             # Color code logic could go here!
             line += f"{int(temp):3}° " 
-        print(line)`
+        print(line)
