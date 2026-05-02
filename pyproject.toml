@@ -11,10 +11,11 @@ requires-python = ">=3.8"
 dependencies = [
     "requests",
     "numpy",
+    "shapely",
 ]
 
 [project.scripts]
-weather-map = "germany_weather_map.main:fetch_weather_matrix"
+weather-map = "germany_weather_map.main:main"
 
 [tool.setuptools.packages.find]
 where = ["src"]

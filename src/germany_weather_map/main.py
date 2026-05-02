@@ -1,3 +1,4 @@
+import argparse
 import requests
 import numpy as np
 import time
@@ -61,7 +62,7 @@ def fetch_weather_matrix():
         params = {
             "latitude": ",".join(map(str, batch_lats)),
             "longitude": ",".join(map(str, batch_lons)),
-            "current": "precipitation,weather_code",
+            "current": "precipitation,temperature_2m,weather_code",
             "timezone": "Europe/Berlin"
         }
 
@@ -90,22 +91,92 @@ def fetch_weather_matrix():
 
     return grid_points
 
-# Fetch and print a simple text-based "Precipitation Map"
-weather_data = fetch_weather_matrix()
-if weather_data:
-    print("--- Germany Precipitation Dot Matrix (mm) ---")
-    print(" (x = outside boundary, . = 0mm) ")
-    for row in weather_data:
-        line = ""
-        for point in row:
-            if not point["is_inside"]:
-                line += " x  "
-            elif point["data"]:
-                precip = point["data"]['current']['precipitation']
-                if precip > 0:
-                    line += f"{precip:3.1f} " 
+def get_precip_color(precip):
+    if precip <= 0:
+        return " .  "
+    
+    # ANSI background colors for radar-like visualization
+    if precip < 0.5:
+        color = "\033[46m"  # Cyan: Light rain
+    elif precip < 2.0:
+        color = "\033[44m"  # Blue: Moderate rain
+    elif precip < 5.0:
+        color = "\033[42m"  # Green: Heavy rain
+    elif precip < 10.0:
+        color = "\033[43m"  # Yellow: Very heavy rain
+    elif precip < 20.0:
+        color = "\033[41m"  # Red: Intense rain
+    else:
+        color = "\033[45m"  # Magenta: Extreme rain
+        
+    return f"{color}   \033[0m "
+
+def get_temp_color(temp):
+    # Standard color gradient for temperatures
+    if temp < 0:
+        color = "\033[47m"  # White: Freezing
+    elif temp < 10:
+        color = "\033[44m"  # Blue: Cold
+    elif temp < 18:
+        color = "\033[46m"  # Cyan: Cool
+    elif temp < 25:
+        color = "\033[42m"  # Green: Mild
+    elif temp < 30:
+        color = "\033[43m"  # Yellow: Warm
+    elif temp < 35:
+        color = "\033[41m"  # Red: Hot
+    else:
+        color = "\033[45m"  # Magenta: Very Hot
+        
+    return f"{color}   \033[0m "
+
+def main():
+    parser = argparse.ArgumentParser(description="Germany Weather Map")
+    parser.add_argument(
+        "map_type", 
+        choices=["temp", "precip"], 
+        nargs="?", 
+        default="temp",
+        help="Type of map to display: 'temp' for temperature or 'precip' for precipitation (default: temp)"
+    )
+    args = parser.parse_args()
+
+    weather_data = fetch_weather_matrix()
+    if not weather_data:
+        return
+
+    if args.map_type == "precip":
+        print("\n--- Germany Precipitation Doppler Radar ---")
+        print(" Legend: \033[46m   \033[0m <0.5mm, \033[44m   \033[0m <2mm, \033[42m   \033[0m <5mm, \033[43m   \033[0m <10mm, \033[41m   \033[0m <20mm, \033[45m   \033[0m 20mm+")
+        print(" (x = outside boundary, . = 0mm) \n")
+        
+        for row in weather_data:
+            line = ""
+            for point in row:
+                if not point["is_inside"]:
+                    line += " x  "
+                elif point["data"]:
+                    precip = point["data"]['current']['precipitation']
+                    line += get_precip_color(precip)
                 else:
-                    line += " .  "
-            else:
-                line += " ?  " # Data missing or error
-        print(line)
+                    line += " ?  " 
+            print(line)
+    else:
+        print("\n--- Germany Temperature Map ---")
+        print(" Legend: \033[47m   \033[0m <0°C, \033[44m   \033[0m <10°C, \033[46m   \033[0m <18°C, \033[42m   \033[0m <25°C, \033[43m   \033[0m <30°C, \033[41m   \033[0m <35°C, \033[45m   \033[0m 35°C+")
+        print(" (x = outside boundary) \n")
+        
+        for row in weather_data:
+            line = ""
+            for point in row:
+                if not point["is_inside"]:
+                    line += " x  "
+                elif point["data"]:
+                    temp = point["data"]['current']['temperature_2m']
+                    line += get_temp_color(temp)
+                else:
+                    line += " ?  " 
+            print(line)
+
+if __name__ == "__main__":
+    main()
