@@ -1,0 +1,20 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "germany-weather-map"
+version = "0.1.0"
+description = "A simple Python application to display a temperature dot matrix of Germany."
+readme = "README.md"
+requires-python = ">=3.8"
+dependencies = [
+    "requests",
+    "numpy",
+]
+
+[project.scripts]
+weather-map = "germany_weather_map.main:fetch_weather_matrix"
+
+[tool.setuptools.packages.find]
+where = ["src"]
