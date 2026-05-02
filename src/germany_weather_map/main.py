@@ -112,21 +112,17 @@ def get_precip_color(precip):
     return f"{color}   \033[0m "
 
 def get_temp_color(temp):
-    # Standard color gradient for temperatures
+    # Typical Meteorological Color Scale
     if temp < 0:
-        color = "\033[47m"  # White: Freezing
+        color = "\033[45m"  # Purple: Freezing to Extreme Cold
     elif temp < 10:
-        color = "\033[44m"  # Blue: Cold
-    elif temp < 18:
-        color = "\033[46m"  # Cyan: Cool
-    elif temp < 25:
-        color = "\033[42m"  # Green: Mild
-    elif temp < 30:
-        color = "\033[43m"  # Yellow: Warm
-    elif temp < 35:
-        color = "\033[41m"  # Red: Hot
+        color = "\033[44m"  # Blue: Cool to Cold
+    elif temp < 21:
+        color = "\033[42m"  # Green: Mild/Moderate
+    elif temp < 38:
+        color = "\033[43m"  # Yellow: Warm to Hot
     else:
-        color = "\033[45m"  # Magenta: Very Hot
+        color = "\033[41m"  # Red: Extremely Hot (Deep Red)
         
     return f"{color}   \033[0m "
 
@@ -163,7 +159,7 @@ def main():
             print(line)
     else:
         print("\n--- Germany Temperature Map ---")
-        print(" Legend: \033[47m   \033[0m <0°C, \033[44m   \033[0m <10°C, \033[46m   \033[0m <18°C, \033[42m   \033[0m <25°C, \033[43m   \033[0m <30°C, \033[41m   \033[0m <35°C, \033[45m   \033[0m 35°C+")
+        print(" Legend: \033[45m   \033[0m <0°C, \033[44m   \033[0m <10°C, \033[42m   \033[0m <21°C, \033[43m   \033[0m <38°C, \033[41m   \033[0m 38°C+")
         print(" (x = outside boundary) \n")
         
         for row in weather_data:

@@ -37,39 +37,29 @@ class TestWeatherMap(unittest.TestCase):
         self.assertIn("\033[45m", get_precip_color(100.0))
 
     def test_get_temp_color_freezing(self):
-        # < 0 (White)
-        self.assertIn("\033[47m", get_temp_color(-5))
-        self.assertIn("\033[47m", get_temp_color(-0.1))
+        # < 0 (Purple)
+        self.assertIn("\033[45m", get_temp_color(-5))
+        self.assertIn("\033[45m", get_temp_color(-0.1))
 
     def test_get_temp_color_cold(self):
         # < 10 (Blue)
         self.assertIn("\033[44m", get_temp_color(0))
         self.assertIn("\033[44m", get_temp_color(9.9))
 
-    def test_get_temp_color_cool(self):
-        # < 18 (Cyan)
-        self.assertIn("\033[46m", get_temp_color(10))
-        self.assertIn("\033[46m", get_temp_color(17.9))
-
-    def test_get_temp_color_mild(self):
-        # < 25 (Green)
-        self.assertIn("\033[42m", get_temp_color(18))
-        self.assertIn("\033[42m", get_temp_color(24.9))
-
-    def test_get_temp_color_warm(self):
-        # < 30 (Yellow)
-        self.assertIn("\033[43m", get_temp_color(25))
-        self.assertIn("\033[43m", get_temp_color(29.9))
+    def test_get_temp_color_moderate(self):
+        # < 21 (Green)
+        self.assertIn("\033[42m", get_temp_color(10))
+        self.assertIn("\033[42m", get_temp_color(20.9))
 
     def test_get_temp_color_hot(self):
-        # < 35 (Red)
-        self.assertIn("\033[41m", get_temp_color(30))
-        self.assertIn("\033[41m", get_temp_color(34.9))
+        # < 38 (Yellow)
+        self.assertIn("\033[43m", get_temp_color(21))
+        self.assertIn("\033[43m", get_temp_color(37.9))
 
-    def test_get_temp_color_very_hot(self):
-        # 35+ (Magenta)
-        self.assertIn("\033[45m", get_temp_color(35))
-        self.assertIn("\033[45m", get_temp_color(40))
+    def test_get_temp_color_extreme(self):
+        # 38+ (Red)
+        self.assertIn("\033[41m", get_temp_color(38))
+        self.assertIn("\033[41m", get_temp_color(45))
 
 if __name__ == "__main__":
     unittest.main()
