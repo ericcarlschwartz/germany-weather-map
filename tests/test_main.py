@@ -1,5 +1,5 @@
 import unittest
-from germany_weather_map.main import get_precip_color, get_temp_color
+from germany_weather_map.main import get_precip_color, get_temp_color, is_border
 
 class TestWeatherMap(unittest.TestCase):
     def test_get_precip_color_zero(self):
@@ -55,6 +55,36 @@ class TestWeatherMap(unittest.TestCase):
         for temp, expected_color in ranges:
             with self.subTest(temp=temp):
                 self.assertIn(expected_color, get_temp_color(temp))
+
+    def test_is_border_external(self):
+        # Test case: a 5x5 grid with an internal square of "inside" points.
+        # The 'O' points are outside, 'I' points are inside.
+        # The goal is to check if 'O' points adjacent to 'I' points are borders.
+        #
+        # O O O O O
+        # O I I I O
+        # O I I I O
+        # O I I I O
+        # O O O O O
+
+        grid = [
+            [{"is_inside": False}, {"is_inside": False}, {"is_inside": False}, {"is_inside": False}, {"is_inside": False}],
+            [{"is_inside": False}, {"is_inside": True},  {"is_inside": True},  {"is_inside": True},  {"is_inside": False}],
+            [{"is_inside": False}, {"is_inside": True},  {"is_inside": True},  {"is_inside": True},  {"is_inside": False}],
+            [{"is_inside": False}, {"is_inside": True},  {"is_inside": True},  {"is_inside": True},  {"is_inside": False}],
+            [{"is_inside": False}, {"is_inside": False}, {"is_inside": False}, {"is_inside": False}, {"is_inside": False}]
+        ]
+
+        # Test points that should be borders (outside but adjacent to inside)
+        self.assertTrue(is_border(grid, 1, 0)) # Left side
+        self.assertTrue(is_border(grid, 0, 1)) # Top side
+        self.assertTrue(is_border(grid, 1, 4)) # Right side
+        self.assertTrue(is_border(grid, 4, 1)) # Bottom side
+        self.assertTrue(is_border(grid, 0, 0)) # Top-left corner (adjacent to inside)
+
+        # Test points that should NOT be borders (inside points)
+        self.assertFalse(is_border(grid, 1, 1))
+        self.assertFalse(is_border(grid, 2, 2))
 
 if __name__ == "__main__":
     unittest.main()
