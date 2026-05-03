@@ -141,23 +141,32 @@ def get_precip_color(precip):
     return f"{color}   \033[0m "
 
 def get_temp_color(temp):
-    # Smoother Meteorological Color Scale using 256-color ANSI
-    if temp < -5:
-        color = "\033[48;5;21m"   # Dark Blue
+    # 12Tempera Color Scheme (Smoothed 12-bin transition)
+    # Mapping based on typical meteorological transitions: Purple -> Blue -> Cyan -> Green -> Yellow -> Orange -> Red
+    if temp < -10:
+        color = "\033[48;5;57m"   # Deep Purple
+    elif temp < -5:
+        color = "\033[48;5;63m"   # Purple-Blue
     elif temp < 0:
         color = "\033[48;5;33m"   # Blue
-    elif temp < 7:
+    elif temp < 5:
+        color = "\033[48;5;39m"   # Light Blue
+    elif temp < 10:
         color = "\033[48;5;45m"   # Cyan
-    elif temp < 14:
+    elif temp < 15:
         color = "\033[48;5;40m"   # Green
-    elif temp < 21:
+    elif temp < 20:
         color = "\033[48;5;118m"  # Light Green
-    elif temp < 28:
+    elif temp < 25:
         color = "\033[48;5;226m"  # Yellow
+    elif temp < 30:
+        color = "\033[48;5;220m"  # Gold / Dark Yellow
     elif temp < 35:
         color = "\033[48;5;214m"  # Orange
+    elif temp < 40:
+        color = "\033[48;5;202m"  # Orange-Red
     else:
-        color = "\033[48;5;196m"  # Red
+        color = "\033[48;5;196m"  # Bright Red
 
     return f"{color}   \033[0m "
 
@@ -193,9 +202,9 @@ def main():
                     line += " ?  " 
             print(line)
     else:
-        print("\n--- Germany Temperature Map ---")
-        print(" Legend: \033[48;5;21m   \033[0m <-5°C, \033[48;5;33m   \033[0m <0°C, \033[48;5;45m   \033[0m <7°C, \033[48;5;40m   \033[0m <14°C,")
-        print("         \033[48;5;118m   \033[0m <21°C, \033[48;5;226m   \033[0m <28°C, \033[48;5;214m   \033[0m <35°C, \033[48;5;196m   \033[0m 35°C+")
+        print("\n--- Germany Temperature Map (12Tempera) ---")
+        print(" Legend: \033[48;5;57m   \033[0m <-10°C, \033[48;5;63m   \033[0m <-5°C, \033[48;5;33m   \033[0m <0°C, \033[48;5;39m   \033[0m <5°C, \033[48;5;45m   \033[0m <10°C, \033[48;5;40m   \033[0m <15°C,")
+        print("         \033[48;5;118m   \033[0m <20°C, \033[48;5;226m   \033[0m <25°C, \033[48;5;220m   \033[0m <30°C, \033[48;5;214m   \033[0m <35°C, \033[48;5;202m   \033[0m <40°C, \033[48;5;196m   \033[0m 40°C+")
         print(" (x = outside boundary) \n")
         
         for row in weather_data:
