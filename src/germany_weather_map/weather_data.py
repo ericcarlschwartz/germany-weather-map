@@ -6,7 +6,7 @@ from urllib3.util import Retry
 from requests.adapters import HTTPAdapter
 from shapely.geometry import Point
 
-from .map_utils import load_germany_boundary, lats, lons
+from map_utils import load_germany_boundary, lats, lons
 
 def fetch_weather_matrix():
     boundary = load_germany_boundary()
@@ -91,9 +91,7 @@ def fetch_weather_matrix():
             print(f"Failed: {e}")
 
     if any(p["data"] is None for p in points_to_query):
-        print("
-Note: Some points could not be fetched (likely due to API rate limits).")
-        print("The map below may show '?' for these locations.
-")
+        print("Note: Some points could not be fetched (likely due to API rate limits).")
+        print("The map below may show '?' for these locations.")
 
     return grid_points

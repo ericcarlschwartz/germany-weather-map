@@ -1,7 +1,7 @@
 import argparse
 
-from .weather_data import fetch_weather_matrix
-from .display import get_precip_color, get_temp_color, is_border
+from weather_data import fetch_weather_matrix
+from display import get_precip_color, get_temp_color, is_border
 
 def main():
     parser = argparse.ArgumentParser(description="Germany Weather Map")
