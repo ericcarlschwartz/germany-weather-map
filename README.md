@@ -48,5 +48,5 @@ python src/germany_weather_map/main.py precip
 - **Tests:** Located in `tests/`
 - **Run Tests:**
   ```bash
-  export PYTHONPATH=./src && python3 tests/test_main.py
+  export PYTHONPATH=./src && python3 tests/test_display.py
   ```

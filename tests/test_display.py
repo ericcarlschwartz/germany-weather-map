@@ -1,5 +1,5 @@
 import unittest
-from germany_weather_map.main import get_precip_color, get_temp_color, is_border
+from germany_weather_map.display import get_precip_color, get_temp_color, is_border
 
 class TestWeatherMap(unittest.TestCase):
     def test_get_precip_color_zero(self):

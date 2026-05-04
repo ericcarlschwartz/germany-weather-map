@@ -1,6 +1,11 @@
 import json
 import numpy as np
+from pathlib import Path
 from shapely.geometry import shape, Point
+
+# Define base path for data files
+DATA_DIR = Path(__file__).parent.parent.parent
+GERMANY_JSON = DATA_DIR / "germany.json"
 
 # 1. Define the bounds of Germany (approximate mainland)
 LAT_MIN, LAT_MAX = 47.3, 55.0
@@ -25,7 +30,7 @@ lons = np.linspace(LON_MIN_PAD, LON_MAX_PAD, cols)
 
 def load_germany_boundary():
     try:
-        with open("germany.json", "r") as f:
+        with open(GERMANY_JSON, "r") as f:
             data = json.load(f)
             # Assuming the first feature is the country boundary
             return shape(data['features'][0]['geometry'])
