@@ -38,7 +38,11 @@ def fetch_weather_matrix():
     url = "https://api.open-meteo.com/v1/dwd-icon"
 
     # Setup caching and retries
-    session = requests_cache.CachedSession('.weather_cache', expire_after=900)
+    session = requests_cache.CachedSession(
+        '.weather_cache', 
+        expire_after=900,
+        old_data_on_error=True
+    )
     
     retries = Retry(
         total=5,
@@ -50,6 +54,7 @@ def fetch_weather_matrix():
 
     logger.info(f"Fetching weather data for {len(points_to_query)} points in batches of {batch_size}...")
     
+    rate_limited = False
     for i in range(0, len(points_to_query), batch_size):
         batch = points_to_query[i : i + batch_size]
         batch_lats = [p["lat"] for p in batch]
@@ -64,10 +69,18 @@ def fetch_weather_matrix():
 
         logger.info(f"  Batch {i//batch_size + 1}/{(len(points_to_query)-1)//batch_size + 1}...")
         try:
-            response = session.get(url, params=params, timeout=15)
+            # If we are already rate limited, don't even try the network
+            if rate_limited:
+                response = session.get(url, params=params, only_if_cached=True)
+            else:
+                response = session.get(url, params=params, timeout=15)
+
             if response.status_code == 200:
                 if getattr(response, 'from_cache', False):
-                    logger.debug("loaded from cache.")
+                    if getattr(response, 'is_expired', False):
+                        logger.debug("loaded stale data from cache (network failed or skipped).")
+                    else:
+                        logger.debug("loaded from cache.")
                 else:
                     logger.debug("fetched from API.")
                 
@@ -77,12 +90,20 @@ def fetch_weather_matrix():
                 for point, data in zip(batch, batch_data):
                     point["data"] = data
             elif response.status_code == 429:
-                logger.error("Rate limited (429). Daily limit reached.")
-                break 
+                logger.error("Rate limited (429). Switching to cache-only mode for remaining points.")
+                rate_limited = True
+                # Try to get this batch from cache if possible
+                response = session.get(url, params=params, only_if_cached=True)
+                if response.status_code == 200:
+                    batch_data = response.json()
+                    if not isinstance(batch_data, list):
+                        batch_data = [batch_data]
+                    for point, data in zip(batch, batch_data):
+                        point["data"] = data
             else:
                 logger.error(f"Error {response.status_code}.")
 
-            if not getattr(response, 'from_cache', False):
+            if not getattr(response, 'from_cache', False) and not rate_limited:
                 time.sleep(2)
         except Exception as e:
             logger.error(f"Failed: {e}")
