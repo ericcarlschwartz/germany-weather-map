@@ -2,6 +2,16 @@
 
 This file contains foundational mandates for AI agents working on the `germany-weather-map` project. These instructions take absolute precedence over general defaults.
 
+## Project Structure & Architecture
+- `src/germany_weather_map/`: Root package for the application.
+    - `main.py`: CLI Entry point. Handles argument parsing, logging setup, and orchestration. Keep logic minimal.
+    - `weather_data.py`: Data Acquisition Layer. Handles API interactions, caching, and batching logic.
+    - `display.py`: Presentation Layer. Contains ANSI color mapping and terminal rendering logic.
+    - `map_utils.py`: Geospatial Utilities. Manages the coordinate grid and boundary checks using `germany.json`.
+- `tests/`: Test suite mirroring the source structure.
+    - `test_integration.py`: End-to-end CLI flow verification.
+- `germany.json`: Critical GeoJSON data for country boundaries.
+
 ## Documentation Maintenance Mandate
 - **Proactive Updates:** Whenever a new feature, CLI argument, or architectural change is implemented, you MUST update the `README.md` and any other relevant documentation immediately. Do not wait for a specific request from the user to do so.
 - **Sync Validation:** Before concluding a task, verify that the `README.md` accurately reflects the current state of the application's features, installation steps, and usage examples.
