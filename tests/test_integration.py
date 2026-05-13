@@ -63,5 +63,21 @@ class TestIntegration(unittest.TestCase):
             
         self.assertIn("Germany Cloud Cover Map", output)
 
+    @patch('germany_weather_map.main.fetch_weather_matrix')
+    def test_main_verbose(self, mock_fetch):
+        mock_fetch.return_value = [
+            [{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.5, "cloud_cover": 0}}}]
+        ]
+        
+        # Test -v flag
+        with patch('sys.argv', ['weather-map', 'temp', '-v']):
+            with redirect_stdout(io.StringIO()):
+                main()
+        
+        # Test --verbose flag
+        with patch('sys.argv', ['weather-map', 'temp', '--verbose']):
+            with redirect_stdout(io.StringIO()):
+                main()
+
 if __name__ == "__main__":
     unittest.main()

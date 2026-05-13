@@ -14,13 +14,18 @@ def main():
         help="Type of map to display: 'temp', 'precip', or 'cloud' (default: temp)"
     )
     parser.add_argument(
+        "-v", "--verbose",
+        action="store_true",
+        help="Show verbose output (debug messages)"
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
-        help="Enable debug logging"
+        help=argparse.SUPPRESS  # Keep for backward compatibility but hide from help
     )
     args = parser.parse_args()
 
-    log_level = logging.DEBUG if args.debug else logging.INFO
+    log_level = logging.DEBUG if (args.debug or args.verbose) else logging.INFO
     logging.basicConfig(level=log_level, format='%(message)s')
 
     try:

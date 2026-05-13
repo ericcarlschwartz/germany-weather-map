@@ -39,6 +39,9 @@ export PYTHONPATH=./src
 python3 -m germany_weather_map.main temp
 python3 -m germany_weather_map.main precip
 python3 -m germany_weather_map.main cloud
+
+# Verbose Mode (shows debug messages like cache status)
+python3 -m germany_weather_map.main -v
 ```
 
 ## Features
