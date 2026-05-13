@@ -1,12 +1,13 @@
-import requests
 import time
+import logging
 import requests_cache
-from retry_requests import retry
 from urllib3.util import Retry
 from requests.adapters import HTTPAdapter
 from shapely.geometry import Point
 
-from map_utils import load_germany_boundary, lats, lons
+from .map_utils import load_germany_boundary, lats, lons
+
+logger = logging.getLogger(__name__)
 
 def fetch_weather_matrix():
     boundary = load_germany_boundary()
@@ -32,25 +33,22 @@ def fetch_weather_matrix():
                 points_to_query.append(point_info)
         grid_points.append(row_points)
 
-    # 3. Call Open-Meteo (DWD ICON-D2 Model)
-    # Batch size of 100 is a good balance for URI length and rate limits
+    # Call Open-Meteo (DWD ICON-D2 Model)
     batch_size = 100
     url = "https://api.open-meteo.com/v1/dwd-icon"
 
     # Setup caching and retries
-    # Cache expires after 15 minutes
     session = requests_cache.CachedSession('.weather_cache', expire_after=900)
     
-    # Configure retries with exponential backoff
     retries = Retry(
         total=5,
-        backoff_factor=1,  # 1s, 2s, 4s, 8s, 16s
+        backoff_factor=1,
         status_forcelist=[429, 500, 502, 503, 504],
         allowed_methods=["GET"]
     )
     session.mount('https://', HTTPAdapter(max_retries=retries))
 
-    print(f"Fetching weather data for {len(points_to_query)} points in batches of {batch_size}...")
+    logger.info(f"Fetching weather data for {len(points_to_query)} points in batches of {batch_size}...")
     
     for i in range(0, len(points_to_query), batch_size):
         batch = points_to_query[i : i + batch_size]
@@ -64,14 +62,14 @@ def fetch_weather_matrix():
             "timezone": "Europe/Berlin"
         }
 
-        print(f"  Batch {i//batch_size + 1}/{(len(points_to_query)-1)//batch_size + 1}...", end=" ", flush=True)
+        logger.info(f"  Batch {i//batch_size + 1}/{(len(points_to_query)-1)//batch_size + 1}...")
         try:
             response = session.get(url, params=params, timeout=15)
             if response.status_code == 200:
                 if getattr(response, 'from_cache', False):
-                    print("loaded from cache.")
+                    logger.debug("loaded from cache.")
                 else:
-                    print("fetched from API.")
+                    logger.debug("fetched from API.")
                 
                 batch_data = response.json()
                 if not isinstance(batch_data, list):
@@ -79,19 +77,17 @@ def fetch_weather_matrix():
                 for point, data in zip(batch, batch_data):
                     point["data"] = data
             elif response.status_code == 429:
-                print("Rate limited (429). Daily limit reached.")
-                break # Stop if we are definitely rate limited for the day
+                logger.error("Rate limited (429). Daily limit reached.")
+                break 
             else:
-                print(f"Error {response.status_code}.")
+                logger.error(f"Error {response.status_code}.")
 
-            # If not from cache, wait to stay under the 600/min limit
             if not getattr(response, 'from_cache', False):
                 time.sleep(2)
         except Exception as e:
-            print(f"Failed: {e}")
+            logger.error(f"Failed: {e}")
 
     if any(p["data"] is None for p in points_to_query):
-        print("Note: Some points could not be fetched (likely due to API rate limits).")
-        print("The map below may show '?' for these locations.")
+        logger.warning("Some points could not be fetched.")
 
     return grid_points

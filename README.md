@@ -32,8 +32,9 @@ weather-map precip
 
 Or using python:
 ```bash
-python src/germany_weather_map/main.py temp
-python src/germany_weather_map/main.py precip
+export PYTHONPATH=./src
+python3 -m germany_weather_map.main temp
+python3 -m germany_weather_map.main precip
 ```
 
 ## Features
@@ -48,5 +49,10 @@ python src/germany_weather_map/main.py precip
 - **Tests:** Located in `tests/`
 - **Run Tests:**
   ```bash
-  export PYTHONPATH=./src && python3 tests/test_display.py
+  export PYTHONPATH=./src && python3 -m unittest discover tests
+  ```
+
+- **Check Coverage:**
+  ```bash
+  export PYTHONPATH=./src && coverage run -m unittest discover tests && coverage report
   ```
