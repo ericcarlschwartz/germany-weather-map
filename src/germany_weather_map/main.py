@@ -8,10 +8,10 @@ def main():
     parser = argparse.ArgumentParser(description="Germany Weather Map")
     parser.add_argument(
         "map_type", 
-        choices=["temp", "precip"], 
+        choices=["temp", "precip", "cloud"], 
         nargs="?", 
         default="temp",
-        help="Type of map to display: 'temp' for temperature or 'precip' for precipitation (default: temp)"
+        help="Type of map to display: 'temp', 'precip', or 'cloud' (default: temp)"
     )
     parser.add_argument(
         "--debug",

@@ -1,5 +1,5 @@
 import unittest
-from germany_weather_map.display import get_precip_color, get_temp_color, is_border
+from germany_weather_map.display import get_precip_color, get_temp_color, is_border, get_cloud_color
 
 class TestWeatherMap(unittest.TestCase):
     def test_get_precip_color_zero(self):
@@ -55,6 +55,18 @@ class TestWeatherMap(unittest.TestCase):
         for temp, expected_color in ranges:
             with self.subTest(temp=temp):
                 self.assertIn(expected_color, get_temp_color(temp))
+
+    def test_get_cloud_color(self):
+        # < 10% (Cyan)
+        self.assertIn("\033[46m", get_cloud_color(5))
+        # < 30% (Light Gray)
+        self.assertIn("\033[48;5;254m", get_cloud_color(20))
+        # < 60%
+        self.assertIn("\033[48;5;250m", get_cloud_color(50))
+        # < 80%
+        self.assertIn("\033[48;5;244m", get_cloud_color(70))
+        # 80%+ (White)
+        self.assertIn("\033[47m", get_cloud_color(90))
 
     def test_is_border_external(self):
         # Test case: a 5x5 grid with an internal square of "inside" points.

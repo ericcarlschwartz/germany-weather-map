@@ -48,6 +48,21 @@ def get_temp_color(temp):
 
     return f"{color}   \033[0m "
 
+def get_cloud_color(cloud_cover):
+    # Cloud cover is 0-100%
+    if cloud_cover < 10:
+        color = "\033[46m"  # Cyan: Clear
+    elif cloud_cover < 30:
+        color = "\033[48;5;254m"  # Very Light Gray
+    elif cloud_cover < 60:
+        color = "\033[48;5;250m"  # Light Gray
+    elif cloud_cover < 80:
+        color = "\033[48;5;244m"  # Gray
+    else:
+        color = "\033[47m"  # White/Bright Gray: Overcast
+        
+    return f"{color}   \033[0m "
+
 def is_border(grid, r, c):
     # A point is a border if it's currently 'outside' but has at least one 'inside' neighbor
     if grid[r][c]["is_inside"]:
@@ -84,6 +99,24 @@ def render_map(weather_data, map_type="temp"):
                 elif point["data"]:
                     precip = point['data']['current']['precipitation']
                     line += get_precip_color(precip)
+                else:
+                    line += " ?  " 
+            print(line)
+    elif map_type == "cloud":
+        print("\n--- Germany Cloud Cover Map ---")
+        print(" Legend: \033[46m   \033[0m <10%, \033[48;5;254m   \033[0m <30%, \033[48;5;250m   \033[0m <60%, \033[48;5;244m   \033[0m <80%, \033[47m   \033[0m 80%+")
+        print(" (x = outside boundary, white = border) \n")
+        
+        for r, row in enumerate(weather_data):
+            line = ""
+            for c, point in enumerate(row):
+                if is_border(weather_data, r, c):
+                    line += BORDER_COLOR
+                elif not point["is_inside"]:
+                    line += " x  "
+                elif point["data"]:
+                    cloud = point['data']['current']['cloud_cover']
+                    line += get_cloud_color(cloud)
                 else:
                     line += " ?  " 
             print(line)

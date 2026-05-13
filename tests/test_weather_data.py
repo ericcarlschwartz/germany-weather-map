@@ -16,7 +16,8 @@ class TestWeatherData(unittest.TestCase):
             "current": {
                 "precipitation": 0.5,
                 "temperature_2m": 20.0,
-                "weather_code": 1
+                "weather_code": 1,
+                "cloud_cover": 50
             }
         }
         mock_response.from_cache = False

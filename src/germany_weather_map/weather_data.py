@@ -58,7 +58,7 @@ def fetch_weather_matrix():
         params = {
             "latitude": ",".join(map(str, batch_lats)),
             "longitude": ",".join(map(str, batch_lons)),
-            "current": "precipitation,temperature_2m,weather_code",
+            "current": "precipitation,temperature_2m,weather_code,cloud_cover",
             "timezone": "Europe/Berlin"
         }
 
