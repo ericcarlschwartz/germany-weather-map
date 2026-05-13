@@ -28,6 +28,9 @@ weather-map temp
 
 # Precipitation Map
 weather-map precip
+
+# Cloud Cover Map
+weather-map cloud
 ```
 
 Or using python:
@@ -35,13 +38,14 @@ Or using python:
 export PYTHONPATH=./src
 python3 -m germany_weather_map.main temp
 python3 -m germany_weather_map.main precip
+python3 -m germany_weather_map.main cloud
 ```
 
 ## Features
 
-- Fetches real-time temperature or precipitation data for a grid across Germany.
+- Fetches real-time temperature, precipitation, or cloud cover data for a grid across Germany.
 - Visualizes weather data in a simple text-based matrix format with color scales.
-- Supports both Temperature and Precipitation maps.
+- Supports Temperature, Precipitation, and Cloud Cover maps.
 
 ## Development
 
