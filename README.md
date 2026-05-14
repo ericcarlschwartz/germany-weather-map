@@ -42,6 +42,9 @@ python3 -m germany_weather_map.main cloud
 
 # Verbose Mode (shows debug messages like cache status)
 python3 -m germany_weather_map.main -v
+
+# Show Legend
+python3 -m germany_weather_map.main -l
 ```
 
 ## Features

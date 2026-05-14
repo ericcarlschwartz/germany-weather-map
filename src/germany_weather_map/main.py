@@ -23,6 +23,11 @@ def main():
         action="store_true",
         help=argparse.SUPPRESS  # Keep for backward compatibility but hide from help
     )
+    parser.add_argument(
+        "-l", "--legend",
+        action="store_true",
+        help="Show map legend"
+    )
     args = parser.parse_args()
 
     log_level = logging.DEBUG if (args.debug or args.verbose) else logging.INFO
@@ -34,7 +39,7 @@ def main():
             logging.error("Failed to fetch weather data.")
             return
 
-        render_map(weather_data, map_type=args.map_type)
+        render_map(weather_data, map_type=args.map_type, show_legend=args.legend)
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")
 

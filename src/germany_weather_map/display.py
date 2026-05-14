@@ -79,7 +79,6 @@ def create_framebuffer(weather_data, map_type="temp"):
 def get_ansi_256_code(rgb):
     """Map RGB to the closest 256-color ANSI code."""
     r, g, b = rgb
-    # Scale 0-255 to 0-5 for the 6x6x6 color cube
     ri = int(r / 51)
     gi = int(g / 51)
     bi = int(b / 51)
@@ -90,7 +89,42 @@ def rgb_to_ansi(rgb, char="   "):
     code = get_ansi_256_code(rgb)
     return f"\033[48;5;{code}m{char}\033[0m"
 
-def render_map(weather_data, map_type="temp"):
+def print_legend(map_type):
+    print(" Legend:")
+    if map_type == "precip":
+        steps = [
+            (0, "0mm"), (0.4, "<0.5mm"), (1.5, "<2mm"), 
+            (4.0, "<5mm"), (9.0, "<10mm"), (15.0, "<20mm"), (25.0, "20mm+")
+        ]
+        line = " "
+        for val, label in steps:
+            line += rgb_to_ansi(get_precip_rgb(val)) + f" {label}  "
+        print(line)
+    elif map_type == "cloud":
+        steps = [
+            (5, "<10%"), (20, "<30%"), (50, "<60%"), (70, "<80%"), (90, "80%+")
+        ]
+        line = " "
+        for val, label in steps:
+            line += rgb_to_ansi(get_cloud_rgb(val)) + f" {label}  "
+        print(line)
+    else: # temp
+        steps = [
+            (-15, "<-10°C"), (-7, "<-5°C"), (-2, "<0°C"), (2, "<5°C"), 
+            (7, "<10°C"), (12, "<15°C"), (17, "<20°C"), (22, "<25°C"), 
+            (27, "<30°C"), (32, "<35°C"), (37, "<40°C"), (45, "40°C+")
+        ]
+        line = " "
+        for i, (val, label) in enumerate(steps):
+            line += rgb_to_ansi(get_temp_rgb(val)) + f" {label}  "
+            if (i + 1) % 6 == 0: # Wrap legend for better terminal fit
+                print(line)
+                line = " "
+        if line.strip():
+            print(line)
+    print(" (x = outside, white = border)\n")
+
+def render_map(weather_data, map_type="temp", show_legend=False):
     fb = create_framebuffer(weather_data, map_type)
     
     titles = {
@@ -100,13 +134,15 @@ def render_map(weather_data, map_type="temp"):
     }
     print(f"\n--- {titles.get(map_type, titles['temp'])} ---")
     
+    if show_legend:
+        print_legend(map_type)
+
     for r in range(fb.shape[0]):
         line = ""
         for c in range(fb.shape[1]):
             rgb = fb[r, c]
             point = weather_data[r][c]
             
-            # Standardize every cell to 4 characters: [Char][Char][Char][Space]
             if is_border(weather_data, r, c):
                 line += rgb_to_ansi(rgb, "   ") + " "
             elif not point["is_inside"]:

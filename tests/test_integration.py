@@ -79,5 +79,19 @@ class TestIntegration(unittest.TestCase):
             with redirect_stdout(io.StringIO()):
                 main()
 
+    @patch('germany_weather_map.main.fetch_weather_matrix')
+    def test_main_legend(self, mock_fetch):
+        mock_fetch.return_value = [
+            [{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.5, "cloud_cover": 0}}}]
+        ]
+        
+        with patch('sys.argv', ['weather-map', 'temp', '--legend']):
+            f = io.StringIO()
+            with redirect_stdout(f):
+                main()
+            output = f.getvalue()
+            
+        self.assertIn("Legend:", output)
+
 if __name__ == "__main__":
     unittest.main()
