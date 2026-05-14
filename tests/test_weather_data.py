@@ -59,13 +59,50 @@ class TestWeatherData(unittest.TestCase):
     @patch('germany_weather_map.weather_data.requests_cache.CachedSession')
     def test_fetch_weather_matrix_cache_fallback(self, mock_session_class):
         # First call fails, second call (fallback to memory) succeeds
-        mock_session_class.side_effect = [Exception("Failed to load sqlite"), MagicMock()]
+        mock_session_fail = MagicMock()
+        mock_session_success = MagicMock()
+        
+        # Mock the success response for the second session
+        mock_response = MagicMock()
+        mock_response.status_code = 200
+        mock_response.json.return_value = {"current": {"precipitation": 0, "temperature_2m": 20, "weather_code": 1, "cloud_cover": 0}}
+        mock_response.from_cache = False
+        mock_session_success.get.return_value = mock_response
+        
+        mock_session_class.side_effect = [Exception("Failed to load sqlite"), mock_session_success]
         
         with patch('time.sleep'):
             fetch_weather_matrix()
             
         self.assertEqual(mock_session_class.call_count, 2)
         self.assertEqual(mock_session_class.call_args_list[1][1]['backend'], 'memory')
+
+    @patch('germany_weather_map.weather_data.requests_cache.CachedSession')
+    def test_fetch_weather_matrix_rate_limit(self, mock_session_class):
+        mock_session = MagicMock()
+        mock_session_class.return_value = mock_session
+        
+        # Mock 429 response
+        mock_response_429 = MagicMock()
+        mock_response_429.status_code = 429
+        
+        # Mock 200 response for the fallback cache-only call
+        mock_response_200 = MagicMock()
+        mock_response_200.status_code = 200
+        mock_response_200.json.return_value = {"current": {"precipitation": 0, "temperature_2m": 20, "weather_code": 1, "cloud_cover": 0}}
+        mock_response_200.from_cache = True
+        
+        mock_session.get.side_effect = [mock_response_429, mock_response_200]
+        
+        with patch('time.sleep'):
+            fetch_weather_matrix()
+            
+        # Verify it switched to rate_limited mode and tried a cache-only call
+        # The first call is regular, the second call happens after 429 inside the exception/handler block
+        self.assertTrue(mock_session.get.called)
+        # Check if only_if_cached=True was used in subsequent calls
+        args, kwargs = mock_session.get.call_args
+        self.assertTrue(kwargs.get('only_if_cached'))
 
 if __name__ == "__main__":
     unittest.main()
