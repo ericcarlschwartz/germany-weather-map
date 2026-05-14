@@ -16,6 +16,8 @@ dependencies = [
     "shapely",
     "fastapi",
     "uvicorn",
+    "redis",
+    "hiredis",
 ]
 
 [project.scripts]

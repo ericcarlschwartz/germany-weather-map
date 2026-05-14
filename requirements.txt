@@ -1,7 +1,9 @@
 requests
-requests-cache
+requests-cache==0.7.5
 retry-requests
 numpy
 shapely
 fastapi
 uvicorn
+redis
+hiredis
