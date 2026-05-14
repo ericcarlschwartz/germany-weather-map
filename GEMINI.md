@@ -15,6 +15,21 @@ This file contains foundational mandates for AI agents working on the `germany-w
 - `germany.json`: Critical GeoJSON data for country boundaries.
 - `vercel.json`: Vercel deployment configuration.
 
+## Vercel Deployment & API
+The application is configured to run as a Vercel Serverless Function using the Python runtime.
+
+### Endpoints
+- **HTML Preview:** `GET /` or `GET /api/preview`
+    - Renders a high-fidelity CSS-based grid for browser testing.
+- **Binary Data:** `GET /api/weather`
+    - Returns raw RGB bytes ($64 \times 32 \times 3 = 6144$ bytes) for hardware consumption.
+- **Health Check:** `GET /api/health`
+
+### Performance & Caching
+- **Edge Cache:** Responses include `Cache-Control: s-maxage=900, stale-while-revalidate=300`. Vercel will cache the processed map for 15 minutes.
+- **Fast Mode:** The API calls `fetch_weather_matrix(fast_mode=True)` to skip internal `time.sleep` calls, ensuring execution stays under the 10s serverless timeout.
+- **Batching:** Uses a batch size of 500 coordinates per request to balance between API efficiency and URI length limits (avoiding 414 errors).
+
 ## Documentation Maintenance Mandate
 - **Proactive Updates:** Whenever a new feature, CLI argument, or architectural change is implemented, you MUST update the `README.md` and any other relevant documentation immediately. Do not wait for a specific request from the user to do so.
 - **Sync Validation:** Before concluding a task, verify that the `README.md` accurately reflects the current state of the application's features, installation steps, and usage examples.

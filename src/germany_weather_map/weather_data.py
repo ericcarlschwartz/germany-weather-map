@@ -34,9 +34,9 @@ def fetch_weather_matrix(fast_mode=False, cache_backend=None):
         grid_points.append(row_points)
 
     # Call Open-Meteo (DWD ICON-D2 Model)
-    # Open-Meteo supports up to 1000 locations per request.
-    # Our grid has ~1050 points inside Germany, so we can do this in 2 batches maximum.
-    batch_size = 1000
+    # Open-Meteo supports up to 1000 locations per request, but 
+    # large coordinate lists can cause '414 Request-URI Too Large' errors.
+    batch_size = 500
     url = "https://api.open-meteo.com/v1/dwd-icon"
 
     # Setup caching and retries
