@@ -38,7 +38,7 @@ def main():
     logging.basicConfig(level=log_level, format='%(message)s')
 
     try:
-        weather_data = fetch_weather_matrix()
+        weather_data, is_complete = fetch_weather_matrix()
         if not weather_data:
             logging.error("Failed to fetch weather data.")
             return
@@ -51,6 +51,9 @@ def main():
             save_binary_framebuffer(fb, args.output)
         else:
             render_map_to_terminal(weather_data, fb, map_type=args.map_type, show_legend=args.legend)
+
+        if not is_complete:
+            logging.warning("Output may be incomplete due to API rate limits.")
 
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")

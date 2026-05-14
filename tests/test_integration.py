@@ -9,8 +9,9 @@ class TestIntegration(unittest.TestCase):
     
     @patch('germany_weather_map.main.fetch_weather_matrix')
     def test_main_temp(self, mock_fetch):
-        mock_fetch.return_value = [[{"is_inside": False} for _ in range(5)] for _ in range(5)]
-        mock_fetch.return_value[2][2] = {"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.0, "cloud_cover": 0}}}
+        grid = [[{"is_inside": False} for _ in range(5)] for _ in range(5)]
+        grid[2][2] = {"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.0, "cloud_cover": 0}}}
+        mock_fetch.return_value = (grid, True)
         
         with patch('sys.argv', ['weather-map', 'temp']):
             f = io.StringIO()
@@ -23,7 +24,8 @@ class TestIntegration(unittest.TestCase):
         
     @patch('germany_weather_map.main.fetch_weather_matrix')
     def test_main_precip(self, mock_fetch):
-        mock_fetch.return_value = [[{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.5, "cloud_cover": 50}}}]]
+        grid = [[{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.5, "cloud_cover": 50}}}]]
+        mock_fetch.return_value = (grid, True)
         with patch('sys.argv', ['weather-map', 'precip']):
             f = io.StringIO()
             with redirect_stdout(f):
@@ -33,7 +35,8 @@ class TestIntegration(unittest.TestCase):
 
     @patch('germany_weather_map.main.fetch_weather_matrix')
     def test_main_cloud(self, mock_fetch):
-        mock_fetch.return_value = [[{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.5, "cloud_cover": 90}}}]]
+        grid = [[{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.5, "cloud_cover": 90}}}]]
+        mock_fetch.return_value = (grid, True)
         with patch('sys.argv', ['weather-map', 'cloud']):
             f = io.StringIO()
             with redirect_stdout(f):
@@ -43,14 +46,16 @@ class TestIntegration(unittest.TestCase):
 
     @patch('germany_weather_map.main.fetch_weather_matrix')
     def test_main_verbose(self, mock_fetch):
-        mock_fetch.return_value = [[{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.5, "cloud_cover": 0}}}]]
+        grid = [[{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.5, "cloud_cover": 0}}}]]
+        mock_fetch.return_value = (grid, True)
         with patch('sys.argv', ['weather-map', 'temp', '-v']):
             with redirect_stdout(io.StringIO()):
                 main()
 
     @patch('germany_weather_map.main.fetch_weather_matrix')
     def test_main_legend(self, mock_fetch):
-        mock_fetch.return_value = [[{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.5, "cloud_cover": 0}}}]]
+        grid = [[{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.5, "cloud_cover": 0}}}]]
+        mock_fetch.return_value = (grid, True)
         with patch('sys.argv', ['weather-map', 'temp', '--legend']):
             f = io.StringIO()
             with redirect_stdout(f):
@@ -60,7 +65,8 @@ class TestIntegration(unittest.TestCase):
 
     @patch('germany_weather_map.main.fetch_weather_matrix')
     def test_main_binary_output(self, mock_fetch):
-        mock_fetch.return_value = [[{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.0, "cloud_cover": 0}}}]]
+        grid = [[{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.0, "cloud_cover": 0}}}]]
+        mock_fetch.return_value = (grid, True)
         path = "integration_test.bin"
         try:
             with patch('sys.argv', ['weather-map', 'temp', '--output', path]):

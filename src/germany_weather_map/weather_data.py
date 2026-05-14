@@ -135,7 +135,8 @@ def fetch_weather_matrix(fast_mode=False, cache_backend=None):
         except Exception as e:
             logger.error(f"Failed: {e}")
 
-    if any(p["data"] is None for p in points_to_query):
+    is_complete = not any(p["data"] is None for p in points_to_query)
+    if not is_complete:
         logger.warning("Some points could not be fetched.")
 
-    return grid_points
+    return grid_points, is_complete

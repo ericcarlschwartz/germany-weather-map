@@ -27,22 +27,26 @@ app = FastAPI()
 
 # Vercel Cache headers: 15 minutes fresh, 5 minutes stale-while-revalidate
 CACHE_HEADER = {"Cache-Control": "s-maxage=900, stale-while-revalidate=300"}
+# Do not cache incomplete/errored responses
+NO_CACHE_HEADER = {"Cache-Control": "no-store, max-age=0"}
 
 @app.get("/", response_class=HTMLResponse)
 @app.get("/api/preview", response_class=HTMLResponse)
 def preview_map(map_type: str = "temp"):
-    data = fetch_weather_matrix(fast_mode=True, cache_backend='memory')
+    data, is_complete = fetch_weather_matrix(fast_mode=True, cache_backend='memory')
     fb = create_framebuffer(data, map_type=map_type)
     html_content = render_map_to_html(data, fb, map_type=map_type)
-    return HTMLResponse(content=html_content, headers=CACHE_HEADER)
+    
+    headers = CACHE_HEADER if is_complete else NO_CACHE_HEADER
+    return HTMLResponse(content=html_content, headers=headers)
 
 @app.get("/api/weather")
 def get_weather_binary(map_type: str = "temp"):
-    # fast_mode=True to avoid Vercel timeout (10s limit)
-    # cache_backend='memory' for read-only filesystem
-    data = fetch_weather_matrix(fast_mode=True, cache_backend='memory')
+    data, is_complete = fetch_weather_matrix(fast_mode=True, cache_backend='memory')
     fb = create_framebuffer(data, map_type=map_type)
-    return Response(content=fb.tobytes(), media_type="application/octet-stream", headers=CACHE_HEADER)
+    
+    headers = CACHE_HEADER if is_complete else NO_CACHE_HEADER
+    return Response(content=fb.tobytes(), media_type="application/octet-stream", headers=headers)
 
 @app.get("/api/health")
 def health_check():
