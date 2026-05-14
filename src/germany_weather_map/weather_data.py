@@ -9,7 +9,7 @@ from .map_utils import load_germany_boundary, lats, lons
 
 logger = logging.getLogger(__name__)
 
-def fetch_weather_matrix():
+def fetch_weather_matrix(fast_mode=False, cache_backend=None):
     boundary = load_germany_boundary()
     
     # Identify which points are inside Germany
@@ -38,11 +38,23 @@ def fetch_weather_matrix():
     url = "https://api.open-meteo.com/v1/dwd-icon"
 
     # Setup caching and retries
-    session = requests_cache.CachedSession(
-        '.weather_cache', 
-        expire_after=900,
-        old_data_on_error=True
-    )
+    # Use specified backend or fallback to memory if file cache fails
+    try:
+        backend = cache_backend or 'sqlite'
+        session = requests_cache.CachedSession(
+            '.weather_cache', 
+            backend=backend,
+            expire_after=900,
+            old_data_on_error=True
+        )
+    except Exception as e:
+        logger.warning(f"Failed to initialize '{backend}' cache backend, falling back to 'memory': {e}")
+        session = requests_cache.CachedSession(
+            'weather_cache_mem',
+            backend='memory',
+            expire_after=900,
+            old_data_on_error=True
+        )
     
     retries = Retry(
         total=5,
@@ -103,7 +115,8 @@ def fetch_weather_matrix():
             else:
                 logger.error(f"Error {response.status_code}.")
 
-            if not getattr(response, 'from_cache', False) and not rate_limited:
+            # If not from cache and not in fast_mode, wait to stay under limits
+            if not getattr(response, 'from_cache', False) and not rate_limited and not fast_mode:
                 time.sleep(2)
         except Exception as e:
             logger.error(f"Failed: {e}")

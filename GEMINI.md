@@ -5,12 +5,15 @@ This file contains foundational mandates for AI agents working on the `germany-w
 ## Project Structure & Architecture
 - `src/germany_weather_map/`: Root package for the application.
     - `main.py`: CLI Entry point. Handles argument parsing, logging setup (with `-v/--verbose` for debug), legend toggle (`-l/--legend`), and binary output (`-o/--output`). Keep logic minimal.
-    - `weather_data.py`: Data Acquisition Layer. Handles API interactions, caching, and batching logic.
+    - `weather_data.py`: Data Acquisition Layer. Handles API interactions, caching, and batching logic. Supports `fast_mode` for serverless environments.
     - `display.py`: Presentation Layer. Completely decoupled from the CLI. Contains functions to generate RGB framebuffers and save them to binary files or render them to the terminal.
     - `map_utils.py`: Geospatial Utilities. Manages the coordinate grid and boundary checks using `germany.json`.
+- `api/`: Vercel Serverless Function entry point.
+    - `index.py`: FastAPI application serving processed weather maps via `/api/weather`.
 - `tests/`: Test suite mirroring the source structure.
     - `test_integration.py`: End-to-end CLI flow verification.
 - `germany.json`: Critical GeoJSON data for country boundaries.
+- `vercel.json`: Vercel deployment configuration.
 
 ## Documentation Maintenance Mandate
 - **Proactive Updates:** Whenever a new feature, CLI argument, or architectural change is implemented, you MUST update the `README.md` and any other relevant documentation immediately. Do not wait for a specific request from the user to do so.
