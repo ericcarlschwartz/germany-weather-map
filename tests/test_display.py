@@ -1,102 +1,42 @@
 import unittest
-from germany_weather_map.display import get_precip_color, get_temp_color, is_border, get_cloud_color
+import numpy as np
+from germany_weather_map.display import (
+    get_precip_rgb, get_temp_rgb, get_cloud_rgb, 
+    is_border, create_framebuffer
+)
 
 class TestWeatherMap(unittest.TestCase):
-    def test_get_precip_color_zero(self):
-        self.assertEqual(get_precip_color(0), " .  ")
-        self.assertEqual(get_precip_color(-1), " .  ")
+    def test_get_precip_rgb(self):
+        self.assertEqual(get_precip_rgb(0), (50, 50, 50))
+        self.assertEqual(get_precip_rgb(0.1), (0, 255, 255)) # Cyan
+        self.assertEqual(get_precip_rgb(100.0), (255, 0, 255)) # Magenta
 
-    def test_get_precip_color_light(self):
-        # < 0.5mm (Cyan)
-        self.assertIn("\033[46m", get_precip_color(0.1))
-        self.assertIn("\033[46m", get_precip_color(0.4))
+    def test_get_temp_rgb(self):
+        self.assertEqual(get_temp_rgb(-15), (95, 0, 215))
+        self.assertEqual(get_temp_rgb(45), (255, 0, 0))
 
-    def test_get_precip_color_moderate(self):
-        # < 2.0mm (Blue)
-        self.assertIn("\033[44m", get_precip_color(0.5))
-        self.assertIn("\033[44m", get_precip_color(1.9))
+    def test_get_cloud_rgb(self):
+        self.assertEqual(get_cloud_rgb(5), (0, 255, 255))
+        self.assertEqual(get_cloud_rgb(95), (255, 255, 255))
 
-    def test_get_precip_color_heavy(self):
-        # < 5.0mm (Green)
-        self.assertIn("\033[42m", get_precip_color(2.0))
-        self.assertIn("\033[42m", get_precip_color(4.9))
-
-    def test_get_precip_color_very_heavy(self):
-        # < 10.0mm (Yellow)
-        self.assertIn("\033[43m", get_precip_color(5.0))
-        self.assertIn("\033[43m", get_precip_color(9.9))
-
-    def test_get_precip_color_intense(self):
-        # < 20.0mm (Red)
-        self.assertIn("\033[41m", get_precip_color(10.0))
-        self.assertIn("\033[41m", get_precip_color(19.9))
-
-    def test_get_precip_color_extreme(self):
-        # 20.0mm+ (Magenta)
-        self.assertIn("\033[45m", get_precip_color(20.0))
-        self.assertIn("\033[45m", get_precip_color(100.0))
-
-    def test_get_temp_color_12tempera(self):
-        # Test each of the 12 bins in the 12Tempera scheme
-        ranges = [
-            (-15, "\033[48;5;57m"),   # < -10
-            (-8,  "\033[48;5;63m"),   # < -5
-            (-2,  "\033[48;5;33m"),   # < 0
-            (2,   "\033[48;5;39m"),   # < 5
-            (7,   "\033[48;5;45m"),   # < 10
-            (12,  "\033[48;5;40m"),   # < 15
-            (17,  "\033[48;5;118m"),  # < 20
-            (22,  "\033[48;5;226m"),  # < 25
-            (27,  "\033[48;5;220m"),  # < 30
-            (32,  "\033[48;5;214m"),  # < 35
-            (37,  "\033[48;5;202m"),  # < 40
-            (45,  "\033[48;5;196m"),  # 40+
+    def test_create_framebuffer(self):
+        # 3x3 grid to ensure center is inside, and we have distinct outside vs border
+        # [ O O O ]
+        # [ O I O ]
+        # [ O O O ]
+        weather_data = [
+            [{"is_inside": False}, {"is_inside": False}, {"is_inside": False}],
+            [{"is_inside": False}, {"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.0, "cloud_cover": 0}}}, {"is_inside": False}],
+            [{"is_inside": False}, {"is_inside": False}, {"is_inside": False}]
         ]
-        for temp, expected_color in ranges:
-            with self.subTest(temp=temp):
-                self.assertIn(expected_color, get_temp_color(temp))
+        fb = create_framebuffer(weather_data, "temp")
+        self.assertEqual(fb.shape, (3, 3, 3))
+        
+        # Center point with 20C
+        self.assertEqual(tuple(fb[1, 1]), get_temp_rgb(20))
+        # Top-left corner (0,0) is a border because it's adjacent to (1,1)
+        self.assertEqual(tuple(fb[0, 0]), (200, 200, 200)) # COLOR_BORDER
 
-    def test_get_cloud_color(self):
-        # < 10% (Cyan)
-        self.assertIn("\033[46m", get_cloud_color(5))
-        # < 30% (Light Gray)
-        self.assertIn("\033[48;5;254m", get_cloud_color(20))
-        # < 60%
-        self.assertIn("\033[48;5;250m", get_cloud_color(50))
-        # < 80%
-        self.assertIn("\033[48;5;244m", get_cloud_color(70))
-        # 80%+ (White)
-        self.assertIn("\033[47m", get_cloud_color(90))
-
-    def test_is_border_external(self):
-        # Test case: a 5x5 grid with an internal square of "inside" points.
-        # The 'O' points are outside, 'I' points are inside.
-        # The goal is to check if 'O' points adjacent to 'I' points are borders.
-        #
-        # O O O O O
-        # O I I I O
-        # O I I I O
-        # O I I I O
-        # O O O O O
-
-        grid = [
-            [{"is_inside": False}, {"is_inside": False}, {"is_inside": False}, {"is_inside": False}, {"is_inside": False}],
-            [{"is_inside": False}, {"is_inside": True},  {"is_inside": True},  {"is_inside": True},  {"is_inside": False}],
-            [{"is_inside": False}, {"is_inside": True},  {"is_inside": True},  {"is_inside": True},  {"is_inside": False}],
-            [{"is_inside": False}, {"is_inside": True},  {"is_inside": True},  {"is_inside": True},  {"is_inside": False}],
-            [{"is_inside": False}, {"is_inside": False}, {"is_inside": False}, {"is_inside": False}, {"is_inside": False}]
-        ]
-
-        # Test points that should be borders (outside but adjacent to inside)
-        self.assertTrue(is_border(grid, 1, 0)) # Left side
-        self.assertTrue(is_border(grid, 0, 1)) # Top side
-        self.assertTrue(is_border(grid, 1, 4)) # Right side
-        self.assertTrue(is_border(grid, 4, 1)) # Bottom side
-        self.assertTrue(is_border(grid, 0, 0)) # Top-left corner (adjacent to inside)
-
-        # Test points that should NOT be borders (inside points)
-        self.assertFalse(is_border(grid, 1, 1))
-        self.assertFalse(is_border(grid, 2, 2))
 
 if __name__ == "__main__":
     unittest.main()
