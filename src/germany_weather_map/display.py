@@ -3,44 +3,40 @@ import numpy as np
 # RGB Color Constants
 COLOR_BLACK = (0, 0, 0)
 COLOR_WHITE = (255, 255, 255)
-COLOR_BORDER = (200, 200, 200)  # Light gray for border
-COLOR_OUTSIDE = (20, 20, 20)    # Very dark gray for outside
-COLOR_MISSING = (255, 0, 255)   # Magenta for missing data '?'
+COLOR_BORDER = (240, 240, 240)  # Very light gray/white for border
+COLOR_OUTSIDE = (30, 30, 30)    # Dark gray for outside
+COLOR_MISSING = (255, 0, 255)   # Magenta for missing data
 
 def get_precip_rgb(precip):
     if precip <= 0:
-        return (50, 50, 50)  # Dark gray for 0mm
-    if precip < 0.5:
-        return (0, 255, 255)    # Cyan
-    if precip < 2.0:
-        return (0, 0, 255)      # Blue
-    if precip < 5.0:
-        return (0, 255, 0)      # Green
-    if precip < 10.0:
-        return (255, 255, 0)    # Yellow
-    if precip < 20.0:
-        return (255, 0, 0)      # Red
-    return (255, 0, 255)        # Magenta
+        return (60, 60, 60)      # Dark gray for 0mm
+    if precip < 0.5: return (0, 255, 255)    # Cyan
+    if precip < 2.0: return (0, 0, 255)      # Blue
+    if precip < 5.0: return (0, 255, 0)      # Green
+    if precip < 10.0: return (255, 255, 0)   # Yellow
+    if precip < 20.0: return (255, 128, 0)   # Orange
+    return (255, 0, 0)                       # Red
 
 def get_temp_rgb(temp):
-    if temp < -10: return (95, 0, 215)
-    if temp < -5:  return (95, 95, 255)
-    if temp < 0:   return (0, 135, 255)
-    if temp < 5:   return (0, 175, 255)
-    if temp < 10:  return (0, 215, 255)
-    if temp < 15:  return (0, 215, 0)
-    if temp < 20:  return (135, 255, 0)
-    if temp < 25:  return (255, 255, 0)
-    if temp < 30:  return (255, 215, 0)
-    if temp < 35:  return (255, 175, 0)
-    if temp < 40:  return (255, 95, 0)
-    return (255, 0, 0)
+    # Smoothed transitions based on 12Tempera
+    if temp < -10: return (128, 0, 128) # Purple
+    if temp < -5:  return (0, 0, 255)   # Blue
+    if temp < 0:   return (0, 128, 255) # Light Blue
+    if temp < 5:   return (0, 255, 255) # Cyan
+    if temp < 10:  return (0, 255, 128) # Teal
+    if temp < 15:  return (0, 255, 0)   # Green
+    if temp < 20:  return (128, 255, 0) # Lime
+    if temp < 25:  return (255, 255, 0) # Yellow
+    if temp < 30:  return (255, 128, 0) # Orange
+    if temp < 35:  return (255, 64, 0)  # Deep Orange
+    if temp < 40:  return (255, 0, 0)   # Red
+    return (128, 0, 0)                  # Dark Red
 
 def get_cloud_rgb(cloud_cover):
     if cloud_cover < 10: return (0, 255, 255)   # Cyan (Clear)
-    if cloud_cover < 30: return (220, 220, 220) # Very Light Gray
-    if cloud_cover < 60: return (180, 180, 180) # Light Gray
-    if cloud_cover < 80: return (100, 100, 100) # Gray
+    if cloud_cover < 30: return (200, 200, 200) # Light Gray
+    if cloud_cover < 60: return (140, 140, 140) # Gray
+    if cloud_cover < 80: return (80, 80, 80)    # Dark Gray
     return (255, 255, 255)                      # White (Overcast)
 
 def is_border(grid, r, c):
@@ -60,7 +56,6 @@ def is_border(grid, r, c):
 def create_framebuffer(weather_data, map_type="temp"):
     rows = len(weather_data)
     cols = len(weather_data[0])
-    # Create an empty RGB framebuffer (uint8)
     fb = np.zeros((rows, cols, 3), dtype=np.uint8)
 
     for r in range(rows):
@@ -71,46 +66,45 @@ def create_framebuffer(weather_data, map_type="temp"):
             elif not point["is_inside"]:
                 fb[r, c] = COLOR_OUTSIDE
             elif point["data"]:
+                curr = point['data']['current']
                 if map_type == "precip":
-                    val = point['data']['current']['precipitation']
-                    fb[r, c] = get_precip_rgb(val)
+                    fb[r, c] = get_precip_rgb(curr['precipitation'])
                 elif map_type == "cloud":
-                    val = point['data']['current']['cloud_cover']
-                    fb[r, c] = get_cloud_rgb(val)
-                else: # temp
-                    val = point['data']['current']['temperature_2m']
-                    fb[r, c] = get_temp_rgb(val)
+                    fb[r, c] = get_cloud_rgb(curr['cloud_cover'])
+                else:
+                    fb[r, c] = get_temp_rgb(curr['temperature_2m'])
             else:
                 fb[r, c] = COLOR_MISSING
     return fb
 
-def rgb_to_ansi(rgb):
+def rgb_to_ansi(rgb, char="   "):
     """Convert an RGB tuple to a 24-bit ANSI background escape code."""
     r, g, b = rgb
-    return f"\033[48;2;{r};{g};{b}m   \033[0m"
+    return f"\033[48;2;{r};{g};{b}m{char}\033[0m"
 
 def render_map(weather_data, map_type="temp"):
     fb = create_framebuffer(weather_data, map_type)
     
-    if map_type == "precip":
-        print("\n--- Germany Precipitation Map ---")
-    elif map_type == "cloud":
-        print("\n--- Germany Cloud Cover Map ---")
-    else:
-        print("\n--- Germany Temperature Map ---")
+    titles = {
+        "precip": "Germany Precipitation Map",
+        "cloud": "Germany Cloud Cover Map",
+        "temp": "Germany Temperature Map"
+    }
+    print(f"\n--- {titles.get(map_type, titles['temp'])} ---")
     
     for r in range(fb.shape[0]):
         line = ""
         for c in range(fb.shape[1]):
             rgb = fb[r, c]
-            # Use specific characters for borders/outside to match previous style
             point = weather_data[r][c]
+            
+            # Standardize every cell to 4 characters: [Char][Char][Char][Space]
             if is_border(weather_data, r, c):
-                line += rgb_to_ansi(rgb)
+                line += rgb_to_ansi(rgb, "   ") + " "
             elif not point["is_inside"]:
-                line += " x  "
+                line += " x  " + " "
             elif not point["data"]:
-                line += " ?  "
+                line += " ?  " + " "
             else:
-                line += rgb_to_ansi(rgb)
+                line += rgb_to_ansi(rgb, "   ") + " "
         print(line)
