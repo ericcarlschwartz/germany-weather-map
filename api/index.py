@@ -25,13 +25,16 @@ from fastapi.responses import HTMLResponse
 
 app = FastAPI()
 
+# Vercel Cache headers: 15 minutes fresh, 5 minutes stale-while-revalidate
+CACHE_HEADER = {"Cache-Control": "s-maxage=900, stale-while-revalidate=300"}
+
 @app.get("/", response_class=HTMLResponse)
 @app.get("/api/preview", response_class=HTMLResponse)
 def preview_map(map_type: str = "temp"):
     data = fetch_weather_matrix(fast_mode=True, cache_backend='memory')
     fb = create_framebuffer(data, map_type=map_type)
     html_content = render_map_to_html(data, fb, map_type=map_type)
-    return HTMLResponse(content=html_content)
+    return HTMLResponse(content=html_content, headers=CACHE_HEADER)
 
 @app.get("/api/weather")
 def get_weather_binary(map_type: str = "temp"):
@@ -39,7 +42,7 @@ def get_weather_binary(map_type: str = "temp"):
     # cache_backend='memory' for read-only filesystem
     data = fetch_weather_matrix(fast_mode=True, cache_backend='memory')
     fb = create_framebuffer(data, map_type=map_type)
-    return Response(content=fb.tobytes(), media_type="application/octet-stream")
+    return Response(content=fb.tobytes(), media_type="application/octet-stream", headers=CACHE_HEADER)
 
 @app.get("/api/health")
 def health_check():
