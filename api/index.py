@@ -7,27 +7,31 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Add the project root and src directory to sys.path
-# Vercel runs from /var/task
 root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 src_path = os.path.join(root_path, "src")
 sys.path.insert(0, src_path)
 sys.path.insert(0, root_path)
 
-logger.info(f"Python Path: {sys.path}")
-logger.info(f"Root dir content: {os.listdir(root_path)}")
-
 try:
     from germany_weather_map.weather_data import fetch_weather_matrix
-    from germany_weather_map.display import create_framebuffer
+    from germany_weather_map.display import create_framebuffer, render_map_to_html
     logger.info("Successfully imported germany_weather_map modules")
 except ImportError as e:
     logger.error(f"Failed to import modules: {e}")
-    # Re-raise so Vercel knows initialization failed
     raise
 
 from fastapi import FastAPI, Response
+from fastapi.responses import HTMLResponse
 
 app = FastAPI()
+
+@app.get("/", response_class=HTMLResponse)
+@app.get("/api/preview", response_class=HTMLResponse)
+def preview_map(map_type: str = "temp"):
+    data = fetch_weather_matrix(fast_mode=True, cache_backend='memory')
+    fb = create_framebuffer(data, map_type=map_type)
+    html_content = render_map_to_html(data, fb, map_type=map_type)
+    return HTMLResponse(content=html_content)
 
 @app.get("/api/weather")
 def get_weather_binary(map_type: str = "temp"):

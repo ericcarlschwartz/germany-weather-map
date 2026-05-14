@@ -132,3 +132,35 @@ def render_map_to_terminal(weather_data, fb, map_type="temp", show_legend=False)
             elif not point["data"]: line += " ?  "
             else: line += rgb_to_ansi(rgb, "   ") + " "
         print(line)
+
+def render_map_to_html(weather_data, fb, map_type="temp"):
+    """Generates a simple HTML grid preview of the framebuffer."""
+    titles = {"precip": "Precipitation", "cloud": "Cloud Cover", "temp": "Temperature"}
+    title = titles.get(map_type, titles['temp'])
+    
+    html = [
+        "<html><body style='background: #121212; color: #eee; font-family: monospace;'>",
+        f"<h2>Germany Weather Map: {title}</h2>",
+        "<div style='line-height: 0; letter-spacing: 0;'>"
+    ]
+
+    for r in range(fb.shape[0]):
+        row_html = "<div>"
+        for c in range(fb.shape[1]):
+            r_val, g_val, b_val = fb[r, c]
+            point = weather_data[r][c]
+            
+            color = f"rgb({r_val},{g_val},{b_val})"
+            
+            if not point["is_inside"] and not is_border(weather_data, r, c):
+                # Use a darker style for outside points to match terminal 'x'
+                row_html += "<span style='display:inline-block; width:12px; height:12px; background:#1a1a1a; border:1px solid #121212; text-align:center; line-height:12px; font-size:8px; color:#444;'>x</span>"
+            else:
+                row_html += f"<span style='display:inline-block; width:12px; height:12px; background:{color}; border:1px solid rgba(0,0,0,0.1);'></span>"
+        row_html += "</div>"
+        html.append(row_html)
+        
+    html.append("</div>")
+    html.append("<p style='margin-top: 20px;'><a href='/api/weather' style='color: #4af;'>Download Binary</a> | <a href='/api/health' style='color: #4af;'>API Health</a></p>")
+    html.append("</body></html>")
+    return "\n".join(html)

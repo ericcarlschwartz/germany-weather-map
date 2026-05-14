@@ -3,7 +3,8 @@ import numpy as np
 import os
 from germany_weather_map.display import (
     get_precip_rgb, get_temp_rgb, get_cloud_rgb, 
-    is_border, create_framebuffer, save_binary_framebuffer
+    is_border, create_framebuffer, save_binary_framebuffer,
+    render_map_to_html
 )
 
 class TestWeatherMap(unittest.TestCase):
@@ -46,6 +47,14 @@ class TestWeatherMap(unittest.TestCase):
         finally:
             if os.path.exists(path):
                 os.remove(path)
+
+    def test_render_map_to_html(self):
+        weather_data = [[{"is_inside": True, "data": {"current": {"temperature_2m": 20.0, "precipitation": 0.0, "cloud_cover": 0}}}]]
+        fb = create_framebuffer(weather_data, "temp")
+        html = render_map_to_html(weather_data, fb, "temp")
+        self.assertIn("<html>", html)
+        self.assertIn("rgb(255,255,0)", html) # Yellow color for 20C
+        self.assertIn("Germany Weather Map", html)
 
 if __name__ == "__main__":
     unittest.main()
