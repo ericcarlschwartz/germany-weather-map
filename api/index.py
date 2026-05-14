@@ -1,12 +1,31 @@
 import os
 import sys
+import logging
+
+# Set up logging to stdout so it appears in Vercel logs
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+# Add the project root and src directory to sys.path
+# Vercel runs from /var/task
+root_path = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+src_path = os.path.join(root_path, "src")
+sys.path.insert(0, src_path)
+sys.path.insert(0, root_path)
+
+logger.info(f"Python Path: {sys.path}")
+logger.info(f"Root dir content: {os.listdir(root_path)}")
+
+try:
+    from germany_weather_map.weather_data import fetch_weather_matrix
+    from germany_weather_map.display import create_framebuffer
+    logger.info("Successfully imported germany_weather_map modules")
+except ImportError as e:
+    logger.error(f"Failed to import modules: {e}")
+    # Re-raise so Vercel knows initialization failed
+    raise
+
 from fastapi import FastAPI, Response
-
-# Add src to path so we can import the package
-sys.path.append(os.path.join(os.path.dirname(__file__), "..", "src"))
-
-from germany_weather_map.weather_data import fetch_weather_matrix
-from germany_weather_map.display import create_framebuffer
 
 app = FastAPI()
 
