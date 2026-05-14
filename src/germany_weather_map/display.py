@@ -18,7 +18,6 @@ def get_precip_rgb(precip):
     return (255, 0, 0)                       # Red
 
 def get_temp_rgb(temp):
-    # Smoothed transitions based on 12Tempera
     if temp < -10: return (128, 0, 128) # Purple
     if temp < -5:  return (0, 0, 255)   # Blue
     if temp < 0:   return (0, 128, 255) # Light Blue
@@ -77,10 +76,19 @@ def create_framebuffer(weather_data, map_type="temp"):
                 fb[r, c] = COLOR_MISSING
     return fb
 
-def rgb_to_ansi(rgb, char="   "):
-    """Convert an RGB tuple to a 24-bit ANSI background escape code."""
+def get_ansi_256_code(rgb):
+    """Map RGB to the closest 256-color ANSI code."""
     r, g, b = rgb
-    return f"\033[48;2;{r};{g};{b}m{char}\033[0m"
+    # Scale 0-255 to 0-5 for the 6x6x6 color cube
+    ri = int(r / 51)
+    gi = int(g / 51)
+    bi = int(b / 51)
+    return 16 + 36 * ri + 6 * gi + bi
+
+def rgb_to_ansi(rgb, char="   "):
+    """Convert an RGB tuple to a 256-color ANSI background escape code."""
+    code = get_ansi_256_code(rgb)
+    return f"\033[48;5;{code}m{char}\033[0m"
 
 def render_map(weather_data, map_type="temp"):
     fb = create_framebuffer(weather_data, map_type)
