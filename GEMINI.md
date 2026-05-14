@@ -14,33 +14,32 @@ This file contains foundational mandates for AI agents working on the `germany-w
     - `test_integration.py`: End-to-end CLI flow verification.
 - `germany.json`: Critical GeoJSON data for country boundaries.
 - `vercel.json`: Vercel deployment configuration.
+- `notes/`: Detailed guides and recommendations.
+    - `vercel_setup.md`: Step-by-step Vercel deployment instructions.
+    - `hardware_recommendations.md`: Advice for ESP32 and LED matrix setup.
 
 ## Vercel Deployment & API
-The application is configured to run as a Vercel Serverless Function using the Python runtime.
+The application runs as a Vercel Serverless Function. See `notes/vercel_setup.md` for the full deployment walkthrough.
+
+### Persistent Shared Cache
+To prevent rate limits, the application supports **Vercel KV (Redis)**.
+- It detects `KV_URL` or `REDIS_URL` environment variables automatically.
+- All serverless instances share this cache, ensuring the API is only hit once every 15 minutes globally.
 
 ### Endpoints
 - **HTML Preview:** `GET /` or `GET /api/preview` (Defaults to **Precipitation**)
     - Explicit paths: `/api/preview/precip`, `/api/preview/temp`, `/api/preview/cloud`.
-    - Renders a high-fidelity CSS-based grid for browser testing.
 - **Binary Data:** `GET /api/weather` (Defaults to **Precipitation**)
     - Explicit paths: `/api/weather/precip`, `/api/weather/temp`, `/api/weather/cloud`.
-    - Returns raw RGB bytes ($64 \times 32 \times 3 = 6144$ bytes) for hardware consumption.
 - **Health Check:** `GET /api/health`
-
-### Performance & Caching
-- **Edge Cache:** Responses include `Cache-Control: s-maxage=900, stale-while-revalidate=300`. Vercel will cache the processed map for 15 minutes.
-- **Fast Mode:** The API calls `fetch_weather_matrix(fast_mode=True)` to skip internal `time.sleep` calls, ensuring execution stays under the 10s serverless timeout.
-- **Batching:** Uses a batch size of 500 coordinates per request to balance between API efficiency and URI length limits (avoiding 414 errors).
-
-## Documentation Maintenance Mandate
-- **Proactive Updates:** Whenever a new feature, CLI argument, or architectural change is implemented, you MUST update the `README.md` and any other relevant documentation immediately. Do not wait for a specific request from the user to do so.
-- **Sync Validation:** Before concluding a task, verify that the `README.md` accurately reflects the current state of the application's features, installation steps, and usage examples.
 
 ## Engineering Standards
 - **Testing Requirements:** Every code change must be accompanied by corresponding unit and/or integration tests.
-- **Coverage Goal:** Maintain a minimum of 90% code coverage. Run `coverage report` after changes to ensure this threshold is met.
-- **Logging over Printing:** Always use the standard `logging` module for status updates and error reporting. Reserved `print` for actual map output intended for the user.
-- **Module Execution:** The application is designed to be run as a module (`python3 -m germany_weather_map.main`). Ensure all package-relative imports are maintained.
+- **Coverage Goal:** Maintain a minimum of 90% code coverage.
+    - Run tests: `export PYTHONPATH=$PYTHONPATH:$(pwd)/src && python3 -m unittest discover tests`
+    - Run coverage: `coverage run -m unittest discover tests && coverage report`
+- **Logging over Printing:** Always use the standard `logging` module for status updates and error reporting. Use `self.assertLogs` in tests to keep output clean.
+- **Module Execution:** Run as a module: `python3 -m germany_weather_map.main`.
 
 ## Technical Context
 - **API:** Uses Open-Meteo DWD ICON API.
