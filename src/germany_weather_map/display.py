@@ -110,9 +110,9 @@ def render_map(weather_data, map_type="temp"):
             if is_border(weather_data, r, c):
                 line += rgb_to_ansi(rgb, "   ") + " "
             elif not point["is_inside"]:
-                line += " x  " + " "
+                line += " x  "
             elif not point["data"]:
-                line += " ?  " + " "
+                line += " ?  "
             else:
                 line += rgb_to_ansi(rgb, "   ") + " "
         print(line)
