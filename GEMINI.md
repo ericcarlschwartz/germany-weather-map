@@ -4,9 +4,9 @@ This file contains foundational mandates for AI agents working on the `germany-w
 
 ## Project Structure & Architecture
 - `src/germany_weather_map/`: Root package for the application.
-    - `main.py`: CLI Entry point. Handles argument parsing, logging setup (with `-v/--verbose` for debug), legend toggle (`-l/--legend`), and orchestration. Keep logic minimal.
+    - `main.py`: CLI Entry point. Handles argument parsing, logging setup (with `-v/--verbose` for debug), legend toggle (`-l/--legend`), and binary output (`-o/--output`). Keep logic minimal.
     - `weather_data.py`: Data Acquisition Layer. Handles API interactions, caching, and batching logic.
-    - `display.py`: Presentation Layer. Contains RGB color mapping and NumPy framebuffer generation logic. Supports 24-bit ANSI terminal rendering as a fallback.
+    - `display.py`: Presentation Layer. Completely decoupled from the CLI. Contains functions to generate RGB framebuffers and save them to binary files or render them to the terminal.
     - `map_utils.py`: Geospatial Utilities. Manages the coordinate grid and boundary checks using `germany.json`.
 - `tests/`: Test suite mirroring the source structure.
     - `test_integration.py`: End-to-end CLI flow verification.

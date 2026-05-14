@@ -45,6 +45,9 @@ python3 -m germany_weather_map.main -v
 
 # Show Legend
 python3 -m germany_weather_map.main -l
+
+# Save Binary Framebuffer (Hardware-Ready RGB bytes)
+python3 -m germany_weather_map.main -o map.bin
 ```
 
 ## Features

@@ -2,7 +2,7 @@ import argparse
 import logging
 
 from .weather_data import fetch_weather_matrix
-from .display import render_map
+from .display import create_framebuffer, render_map_to_terminal, save_binary_framebuffer
 
 def main():
     parser = argparse.ArgumentParser(description="Germany Weather Map")
@@ -21,12 +21,16 @@ def main():
     parser.add_argument(
         "--debug",
         action="store_true",
-        help=argparse.SUPPRESS  # Keep for backward compatibility but hide from help
+        help=argparse.SUPPRESS
     )
     parser.add_argument(
         "-l", "--legend",
         action="store_true",
         help="Show map legend"
+    )
+    parser.add_argument(
+        "-o", "--output",
+        help="Path to save binary framebuffer output"
     )
     args = parser.parse_args()
 
@@ -39,7 +43,15 @@ def main():
             logging.error("Failed to fetch weather data.")
             return
 
-        render_map(weather_data, map_type=args.map_type, show_legend=args.legend)
+        # 1. Create the hardware-ready framebuffer
+        fb = create_framebuffer(weather_data, map_type=args.map_type)
+
+        # 2. Handle outputs
+        if args.output:
+            save_binary_framebuffer(fb, args.output)
+        else:
+            render_map_to_terminal(weather_data, fb, map_type=args.map_type, show_legend=args.legend)
+
     except Exception as e:
         logging.error(f"An unexpected error occurred: {e}")
 
