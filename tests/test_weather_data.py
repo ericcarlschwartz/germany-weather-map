@@ -8,6 +8,15 @@ class TestWeatherData(unittest.TestCase):
     def setUp(self):
         # Reset the global session before each test
         weather_data._session = None
+        # Mock grid coordinates to be small for all tests
+        self.lats_patcher = patch('germany_weather_map.weather_data.lats', [50.0])
+        self.lons_patcher = patch('germany_weather_map.weather_data.lons', [10.0])
+        self.lats_patcher.start()
+        self.lons_patcher.start()
+
+    def tearDown(self):
+        self.lats_patcher.stop()
+        self.lons_patcher.stop()
 
     @patch('germany_weather_map.weather_data.requests_cache.CachedSession')
     def test_fetch_weather_matrix(self, mock_session_class):
@@ -19,9 +28,7 @@ class TestWeatherData(unittest.TestCase):
         mock_response.from_cache = False
         mock_session.get.return_value = mock_response
         
-        with patch('germany_weather_map.weather_data.lats', [50.0]), \
-             patch('germany_weather_map.weather_data.lons', [10.0]), \
-             patch('time.sleep'):
+        with patch('time.sleep'):
             grid, is_complete = fetch_weather_matrix()
             
         self.assertTrue(is_complete)
@@ -37,9 +44,7 @@ class TestWeatherData(unittest.TestCase):
         mock_response.from_cache = False
         mock_session.get.return_value = mock_response
 
-        with patch('germany_weather_map.weather_data.lats', [50.0]), \
-             patch('germany_weather_map.weather_data.lons', [10.0]), \
-             patch('time.sleep') as mock_sleep:
+        with patch('time.sleep') as mock_sleep:
             fetch_weather_matrix(fast_mode=True)
             self.assertFalse(mock_sleep.called)
 
@@ -53,10 +58,10 @@ class TestWeatherData(unittest.TestCase):
         
         mock_session_class.side_effect = [Exception("Failed to load sqlite"), mock_session_success]
         
-        with patch('germany_weather_map.weather_data.lats', [50.0]), \
-             patch('germany_weather_map.weather_data.lons', [10.0]), \
-             patch('time.sleep'):
-            fetch_weather_matrix()
+        with patch('time.sleep'):
+            with self.assertLogs('germany_weather_map.weather_data', level='WARNING') as cm:
+                fetch_weather_matrix()
+                self.assertTrue(any("falling back to 'memory'" in log for log in cm.output))
             
         self.assertEqual(mock_session_class.call_count, 2)
         self.assertEqual(mock_session_class.call_args_list[1][1]['backend'], 'memory')
@@ -75,10 +80,10 @@ class TestWeatherData(unittest.TestCase):
         
         mock_session.get.side_effect = [mock_response_429, mock_response_200]
         
-        with patch('germany_weather_map.weather_data.lats', [50.0]), \
-             patch('germany_weather_map.weather_data.lons', [10.0]), \
-             patch('time.sleep'):
-            grid, is_complete = fetch_weather_matrix()
+        with patch('time.sleep'):
+            with self.assertLogs('germany_weather_map.weather_data', level='ERROR') as cm:
+                grid, is_complete = fetch_weather_matrix()
+                self.assertTrue(any("Rate limited (429)" in log for log in cm.output))
             
         self.assertTrue(mock_session.get.called)
         self.assertTrue(is_complete)
@@ -95,10 +100,10 @@ class TestWeatherData(unittest.TestCase):
         
         mock_session.get.side_effect = [mock_response_429, mock_response_fail]
         
-        with patch('germany_weather_map.weather_data.lats', [50.0]), \
-             patch('germany_weather_map.weather_data.lons', [10.0]), \
-             patch('time.sleep'):
-            grid, is_complete = fetch_weather_matrix()
+        with patch('time.sleep'):
+            with self.assertLogs('germany_weather_map.weather_data', level='WARNING') as cm:
+                grid, is_complete = fetch_weather_matrix()
+                self.assertTrue(any("Some points could not be fetched" in log for log in cm.output))
             
         self.assertFalse(is_complete)
 

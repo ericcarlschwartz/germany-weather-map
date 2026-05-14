@@ -19,9 +19,11 @@ This file contains foundational mandates for AI agents working on the `germany-w
 The application is configured to run as a Vercel Serverless Function using the Python runtime.
 
 ### Endpoints
-- **HTML Preview:** `GET /` or `GET /api/preview`
+- **HTML Preview:** `GET /` or `GET /api/preview` (Defaults to **Precipitation**)
+    - Explicit paths: `/api/preview/precip`, `/api/preview/temp`, `/api/preview/cloud`.
     - Renders a high-fidelity CSS-based grid for browser testing.
-- **Binary Data:** `GET /api/weather`
+- **Binary Data:** `GET /api/weather` (Defaults to **Precipitation**)
+    - Explicit paths: `/api/weather/precip`, `/api/weather/temp`, `/api/weather/cloud`.
     - Returns raw RGB bytes ($64 \times 32 \times 3 = 6144$ bytes) for hardware consumption.
 - **Health Check:** `GET /api/health`
 
