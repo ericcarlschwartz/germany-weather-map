@@ -14,8 +14,8 @@ class TestWeatherMap(unittest.TestCase):
         self.assertEqual(get_precip_rgb(25.0), (255, 0, 0)) # Red
 
     def test_get_temp_rgb(self):
-        self.assertEqual(get_temp_rgb(-15), (128, 0, 128))
-        self.assertEqual(get_temp_rgb(45), (128, 0, 0))
+        self.assertEqual(get_temp_rgb(-15), (95, 0, 215)) # 12Tempera Deep Purple
+        self.assertEqual(get_temp_rgb(45), (255, 0, 0))   # 12Tempera Bright Red
 
     def test_get_cloud_rgb(self):
         self.assertEqual(get_cloud_rgb(5), (0, 255, 255))
@@ -53,7 +53,7 @@ class TestWeatherMap(unittest.TestCase):
         fb = create_framebuffer(weather_data, "temp")
         html = render_map_to_html(weather_data, fb, "temp")
         self.assertIn("<html>", html)
-        self.assertIn("rgb(255,255,0)", html) # Yellow color for 20C
+        self.assertIn("rgb(255,255,0)", html) # 12Tempera Yellow for 20C
         self.assertIn("Germany Weather Map", html)
 
 if __name__ == "__main__":

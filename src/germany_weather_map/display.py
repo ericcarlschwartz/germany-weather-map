@@ -18,18 +18,19 @@ def get_precip_rgb(precip):
     return (255, 0, 0)
 
 def get_temp_rgb(temp):
-    if temp < -10: return (128, 0, 128)
-    if temp < -5:  return (0, 0, 255)
-    if temp < 0:   return (0, 128, 255)
-    if temp < 5:   return (0, 255, 255)
-    if temp < 10:  return (0, 255, 128)
-    if temp < 15:  return (0, 255, 0)
-    if temp < 20:  return (128, 255, 0)
-    if temp < 25:  return (255, 255, 0)
-    if temp < 30:  return (255, 128, 0)
-    if temp < 35:  return (255, 64, 0)
-    if temp < 40:  return (255, 0, 0)
-    return (128, 0, 0)
+    # 12Tempera Color Scheme (Smoothed 12-bin transition)
+    if temp < -10: return (95, 0, 215)   # Deep Purple
+    if temp < -5:  return (95, 95, 255)  # Purple-Blue
+    if temp < 0:   return (0, 135, 255)  # Blue
+    if temp < 5:   return (0, 175, 255)  # Light Blue
+    if temp < 10:  return (0, 215, 255)  # Cyan
+    if temp < 15:  return (0, 215, 0)    # Green
+    if temp < 20:  return (135, 255, 0)  # Light Green
+    if temp < 25:  return (255, 255, 0)  # Yellow
+    if temp < 30:  return (255, 215, 0)  # Gold / Dark Yellow
+    if temp < 35:  return (255, 175, 0)  # Orange
+    if temp < 40:  return (255, 95, 0)   # Orange-Red
+    return (255, 0, 0)                   # Bright Red
 
 def get_cloud_rgb(cloud_cover):
     if cloud_cover < 10: return (0, 255, 255)
@@ -109,12 +110,19 @@ def print_legend(map_type):
         for val, label in steps: line += rgb_to_ansi(get_cloud_rgb(val)) + f" {label}  "
         print(line)
     else: # temp
-        steps = [(-15, "<-10C"), (-7, "<-5C"), (-2, "<0C"), (2, "<5C"), (7, "<10C"), (12, "<15C"), (17, "<20C"), (22, "<25C"), (27, "<30C"), (32, "<35C"), (37, "<40C"), (45, "40C+")]
+        steps = [
+            (-15, "<-10°C"), (-7, "<-5°C"), (-2, "<0°C"), (2, "<5°C"), 
+            (7, "<10°C"), (12, "<15°C"), (17, "<20°C"), (22, "<25°C"), 
+            (27, "<30°C"), (32, "<35°C"), (37, "<40°C"), (45, "40°C+")
+        ]
         line = " "
         for i, (val, label) in enumerate(steps):
             line += rgb_to_ansi(get_temp_rgb(val)) + f" {label}  "
-            if (i + 1) % 6 == 0: print(line); line = " "
-        if line.strip(): print(line)
+            if (i + 1) % 6 == 0: # Wrap legend for better terminal fit
+                print(line)
+                line = " "
+        if line.strip():
+            print(line)
     print(" (x = outside, white = border)\n")
 
 def render_map_to_terminal(weather_data, fb, map_type="temp", show_legend=False):
