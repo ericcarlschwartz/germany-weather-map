@@ -30,6 +30,30 @@ You need a 5V supply with enough current (Amps).
 
 ---
 
+## Enclosure & Framing Options
+To make the map look like a finished product rather than a project, consider these framing paths:
+
+### 1. The "IKEA Hack" (Shadow Box)
+- **Frame:** IKEA **SANNAHED** (25x25cm, black).
+- **Setup:** Create a custom black mount board (Passepartout) with a rectangular window for the matrix. Sandwich the diffusion sheet between the glass and the matrix.
+- **Pros:** Very professional look, hides all cables and the controller inside the frame.
+
+### 2. The Minimalist Acrylic Case
+- **Design:** Order custom laser-cut rectangles (e.g., from **Formulor** in DE) slightly larger than the matrix.
+- **Setup:** Use **M3 Standoffs** (approx 30mm) to bolt a black front sheet and a clear back sheet together, trapping the matrix in the middle.
+- **Pros:** Extremely sleek and modern, "floating" appearance.
+
+### 3. The 3D-Printed Frame
+- **Design:** Use the community-standard [Matrix Portal 64x32 Case](https://www.printables.com/model/161474-64x32-rgb-led-matrix-case-for-adafruit-matrix-port).
+- **Refinement:** Print in **Matte Black PLA** and lightly sand for a high-end plastic finish.
+
+### Pro Tips for a Polished Look
+- **90-Degree Adapters:** Use a 90-degree USB-C or DC barrel jack adapter so the cable drops straight down, allowing the frame to sit flush against a wall.
+- **Light Sensor:** The Matrix Portal S3 has a built-in light sensor. You can use it in your final code to dim the LEDs automatically when your room lights are off.
+- **Blackout Tape:** If light leaks from the sides of the frame, use black electrical tape or "LightDims" to seal the edges behind the diffusion sheet.
+
+---
+
 ## Software Architecture (Hardware-Ready)
 The codebase has been refactored to decouple data generation from display rendering:
 - **Data Layer (`weather_data.py`):** Fetches/caches weather data with fallback to stale data.
