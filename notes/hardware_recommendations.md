@@ -3,7 +3,7 @@
 This document summarizes the hardware recommendations and architectural decisions made to support the transition from a terminal application to a physical LED weather map, with a focus on European suppliers.
 
 ## Recommended Hardware (European Sources)
-For a dedicated "always-on" bookshelf display, the **ESP32** pathway is recommended. 
+For a dedicated "always-on" bookshelf display, the **ESP32** pathway is the official strategy.
 
 ### 1. The Controller: Adafruit Matrix Portal S3
 This is the "brain" that plugs directly into the back of the LED panel.
@@ -26,7 +26,7 @@ Raw LEDs are harsh; diffusion makes them look like professional "pixels."
 ### 4. Power Supply
 You need a 5V supply with enough current (Amps).
 - **Recommendation:** 5V / 4A (20W) or 5V / 10A (50W) power supply with a 2.1mm DC jack.
-- **Source:** [BerryBase 5V 4A Power Supply](https://www.berrybase.de/netzteil-5v/4a-20w-hohlstecker-5-5/2-1mm).
+- **Source:** [BerryBase 5V 4A Power Supply](https://www.berrybase.de/steckernetzteil-5v-4a-20w-hohlstecker-5-5mm/2-1mm).
 
 ---
 
@@ -36,19 +36,12 @@ The codebase has been refactored to decouple data generation from display render
 - **Logic Layer (`create_framebuffer`):** Generates a raw NumPy RGB array.
 - **Vercel API:** Serves raw RGB bytes via `/api/weather` and HTML preview via `/api/preview`.
 
-## Implementation Strategies
-
-### 1. The "Proxy" Strategy (Recommended for ESP32)
+## Implementation Strategy: The "Proxy" Strategy
+The "Proxy" strategy is the implemented path for this project:
 1. The **Vercel API** does the heavy lifting (Shapely, NumPy, API batching).
 2. The **ESP32** (Matrix Portal S3) runs a simple CircuitPython script.
 3. It fetches the binary data from `https://your-site.com/api/weather/precip`.
 4. It reads the 6144 bytes and updates the matrix.
-
-### 2. The "Direct Drive" Strategy (Raspberry Pi)
-If using a Raspberry Pi Zero 2 W:
-1. Install the [rpi-rgb-led-matrix](https://github.com/hzeller/rpi-rgb-led-matrix) library.
-2. Run the existing Python code locally on the Pi.
-3. Use a simple driver to push the `create_framebuffer` output to the LEDs.
 
 ## Project Status Highlights
 - **Coverage:** 93% (Unit + Integration tests).
