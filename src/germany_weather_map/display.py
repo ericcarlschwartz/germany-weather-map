@@ -138,29 +138,40 @@ def render_map_to_html(weather_data, fb, map_type="temp"):
     titles = {"precip": "Precipitation", "cloud": "Cloud Cover", "temp": "Temperature"}
     title = titles.get(map_type, titles['temp'])
     
+    # Each pixel in the 64x32 grid is geographicically ~2.4x wider than it is tall.
+    # We use 24px width and 10px height to match this and the terminal's look.
+    p_width = 24
+    p_height = 10
+
     html = [
-        "<html><body style='background: #121212; color: #eee; font-family: monospace;'>",
+        "<html><body style='background: #121212; color: #eee; font-family: monospace; padding: 20px;'>",
         f"<h2>Germany Weather Map: {title}</h2>",
-        "<div style='line-height: 0; letter-spacing: 0;'>"
+        f"<div style='display: flex; flex-direction: column; line-height: 0; border: 10px solid #1a1a1a; width: {p_width * 32}px;'>"
     ]
 
     for r in range(fb.shape[0]):
-        row_html = "<div>"
+        row_html = "<div style='display: flex;'>"
         for c in range(fb.shape[1]):
             r_val, g_val, b_val = fb[r, c]
             point = weather_data[r][c]
             
             color = f"rgb({r_val},{g_val},{b_val})"
             
+            style = f"display:inline-block; width:{p_width}px; height:{p_height}px; "
+            
             if not point["is_inside"] and not is_border(weather_data, r, c):
-                # Use a darker style for outside points to match terminal 'x'
-                row_html += "<span style='display:inline-block; width:12px; height:12px; background:#1a1a1a; border:1px solid #121212; text-align:center; line-height:12px; font-size:8px; color:#444;'>x</span>"
+                # Outside points
+                row_html += f"<span style='{style} background:#1a1a1a; text-align:center; line-height:{p_height}px; font-size:8px; color:#333;'>x</span>"
             else:
-                row_html += f"<span style='display:inline-block; width:12px; height:12px; background:{color}; border:1px solid rgba(0,0,0,0.1);'></span>"
+                # Border or Inside points
+                row_html += f"<span style='{style} background:{color}; box-shadow: inset 0 0 1px rgba(0,0,0,0.2);'></span>"
         row_html += "</div>"
         html.append(row_html)
         
     html.append("</div>")
-    html.append("<p style='margin-top: 20px;'><a href='/api/weather' style='color: #4af;'>Download Binary</a> | <a href='/api/health' style='color: #4af;'>API Health</a></p>")
+    html.append("<p style='margin-top: 20px; font-size: 14px;'>")
+    html.append("<a href='/api/weather' style='color: #4af; text-decoration: none;'>&downarrow; Download Binary</a> | ")
+    html.append("<a href='/api/health' style='color: #4af; text-decoration: none;'>Health Check</a>")
+    html.append("</p>")
     html.append("</body></html>")
     return "\n".join(html)
