@@ -12,7 +12,9 @@ This file contains foundational mandates for AI agents working on the `germany-w
     - `index.py`: FastAPI application serving processed weather maps via `/api/weather`.
 - `tests/`: Test suite mirroring the source structure.
     - `test_integration.py`: End-to-end CLI flow verification.
+- `README.md`: High-level project overview and usage guide. Keep this updated with any major feature or architectural changes.
 - `germany.json`: Critical GeoJSON data for country boundaries.
+- `GEMINI.md`: AI project instructions and foundational mandates.
 - `vercel.json`: Vercel deployment configuration.
 - `notes/`: Detailed guides and recommendations.
     - `vercel_setup.md`: Step-by-step Vercel deployment instructions.
